@@ -42,6 +42,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
     ->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::get('/reservas', [ReservaController::class, 'indexAdmin'])->name('reservas');
+        Route::get('/analisis', [AdminController::class, 'analisis'])->name('analisis');
         Route::post('/reservas/{reserva}/aprobar', [ReservaController::class, 'aprobar'])->name('reservas.aprobar');
         Route::post('/reservas/{reserva}/rechazar', [ReservaController::class, 'rechazar'])->name('reservas.rechazar');
 

@@ -74,7 +74,7 @@ const getColorClass = (color) => {
             </div>
           </div>
         </div>
-
+        
         <!-- Estadísticas principales -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow">
@@ -168,37 +168,48 @@ const getColorClass = (color) => {
                 <h3 class="text-lg font-bold text-gray-900">Accesos Rápidos</h3>
               </div>
               <div class="space-y-2">
+                <!-- Acceso rápido Reservas -->
                 <Link :href="route('admin.reservas')"
                   class="flex items-center justify-between p-3 rounded-lg border-2 border-gray-200 hover:border-blue-600 hover:bg-blue-50 transition-all group">
                   <div class="flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor"
-                      viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
                     <span class="font-semibold text-gray-900">Reservas</span>
                   </div>
-                  <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                   </svg>
                 </Link>
+                <!-- Acceso rápido Prendas -->
                 <Link :href="route('admin.prendas.index')"
                   class="flex items-center justify-between p-3 rounded-lg border-2 border-gray-200 hover:border-purple-600 hover:bg-purple-50 transition-all group">
                   <div class="flex items-center space-x-3">
-                    <svg class="w-5 h-5 text-gray-600 group-hover:text-purple-600" fill="none" stroke="currentColor"
-                      viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 text-gray-600 group-hover:text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
                     <span class="font-semibold text-gray-900">Prendas</span>
                   </div>
-                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-600" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                   </svg>
                 </Link>
-              
+                <!-- Nuevo acceso rápido Análisis -->
+                <Link :href="route('admin.analisis')"
+                  class="flex items-center justify-between p-3 rounded-lg border-2 border-gray-200 hover:border-green-600 hover:bg-green-50 transition-all group">
+                  <div class="flex items-center space-x-3">
+                    <svg class="w-5 h-5 text-gray-600 group-hover:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 8a6 6 0 00-12 0v1h18v-1a6 6 0 00-6-6zm-7 2a4 4 0 018 0v1h-8zm-1 1h10v6a4 4 0 01-4 4h-2a4 4 0 01-4-4v-6z"></path>
+                    </svg>
+                    <span class="font-semibold text-gray-900">Análisis</span>
+                  </div>
+                  <svg class="w-5 h-5 text-gray-400 group-hover:text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </Link>
               </div>
             </div>
           </div>
