@@ -7,6 +7,7 @@ use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\PrendaController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\GoogleController;
 use Inertia\Inertia;
 
 // Página principal
@@ -18,6 +19,10 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+// --- RUTAS GOOGLE ---
+Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('auth/google/callback', [GoogleController::class, 'callback']);
 
 // Catálogo público
 Route::get('/catalogo', [CatalogoController::class, 'index'])->name('catalogo.index');

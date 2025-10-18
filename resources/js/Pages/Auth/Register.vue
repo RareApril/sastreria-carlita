@@ -24,10 +24,28 @@ const submit = () => {
     <GuestLayout>
         <Head title="Register" />
 
+        <div class="flex flex-col gap-2 mb-6">
+            <!-- BOTÓN GOOGLE -->
+            <a
+                :href="route('google.redirect')"
+                class="w-full bg-white border text-gray-700 py-2 rounded-lg flex items-center justify-center font-semibold shadow-sm hover:bg-gray-50 transition-all"
+                style="border-color: #e5e7eb;"
+            >
+                <svg class="w-5 h-5 mr-2" viewBox="0 0 48 48">
+                    <g>
+                        <path d="M44.5 20H24v8.5h11.7c-1.4 4-5.2 6.5-9.7 6.5A10.5 10.5 0 1 1 24 13c2.1 0 4 .6 5.6 1.8l6.3-6.3C32.8 6.7 28.7 5 24 5A19 19 0 1 0 43 24c0-1.3-.1-2.3-.3-3.3z" fill="#FFC107"/>
+                        <path d="M6.3 14.1l7 5.1A10.5 10.5 0 0 1 24 13a10.5 10.5 0 0 1 5.6 1.8l6.3-6.3C32.8 6.7 28.7 5 24 5c-7.4 0-13.7 4.1-17.7 10.1z" fill="#FF3D00"/>
+                        <path d="M24 44c4.6 0 8.7-1.5 11.7-4.1l-5.4-4.5C28 36.6 26.1 37.1 24 37.1c-4.5 0-8.3-2.5-9.7-6.5l-7 5.1C10.3 40.1 16.6 44 24 44z" fill="#4CAF50"/>
+                        <path d="M44.5 20H24v8.5h11.7c-.6 1.9-2.2 4.2-4.2 6l6.4 5c3.8-3.3 6-8.1 6-13.5 0-1-.1-2-.2-3z" fill="#1976D2"/>
+                    </g>
+                </svg>
+                Continuar con Google
+            </a>
+        </div>
+        
         <form @submit.prevent="submit">
             <div>
                 <InputLabel for="name" value="Name" />
-
                 <TextInput
                     id="name"
                     type="text"
@@ -37,13 +55,11 @@ const submit = () => {
                     autofocus
                     autocomplete="name"
                 />
-
                 <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
             <div class="mt-4">
                 <InputLabel for="email" value="Email" />
-
                 <TextInput
                     id="email"
                     type="email"
@@ -52,13 +68,11 @@ const submit = () => {
                     required
                     autocomplete="username"
                 />
-
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="mt-4">
                 <InputLabel for="password" value="Password" />
-
                 <TextInput
                     id="password"
                     type="password"
@@ -67,7 +81,6 @@ const submit = () => {
                     required
                     autocomplete="new-password"
                 />
-
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
@@ -76,7 +89,6 @@ const submit = () => {
                     for="password_confirmation"
                     value="Confirm Password"
                 />
-
                 <TextInput
                     id="password_confirmation"
                     type="password"
@@ -85,7 +97,6 @@ const submit = () => {
                     required
                     autocomplete="new-password"
                 />
-
                 <InputError
                     class="mt-2"
                     :message="form.errors.password_confirmation"
@@ -99,7 +110,6 @@ const submit = () => {
                 >
                     Already registered?
                 </Link>
-
                 <PrimaryButton
                     class="ms-4"
                     :class="{ 'opacity-25': form.processing }"
