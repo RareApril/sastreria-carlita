@@ -7,6 +7,7 @@ use App\Models\DetalleReserva;
 use App\Models\Prenda;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class ReservaController extends Controller
 {
@@ -20,13 +21,28 @@ class ReservaController extends Controller
         return Inertia::render('Dashboard', [
             'user' => $user,
             'reservas' => $reservas,
-            'csrf_token' => csrf_token() // <- AGREGA ESTA LÍNEA
+            'csrf_token' => csrf_token() 
         ]);
     }
-    // NUEVO: Mostrar formulario para reservar un terno
+
+    // Mostrar formulario para reservar un terno
     public function create(Prenda $prenda) {
+        $fechasOcupadas = Reserva::whereHas('detalleReservas', function($q) use ($prenda) {
+                $q->where('prenda_id', $prenda->id);
+            })
+            ->where('estado', '!=', 'cancelada')
+            ->get(['fecha_inicio', 'fecha_fin'])
+            ->map(function($reserva) {
+                // sumamos 2 días extra en frontend también si se usa este array 
+                return [
+                    'inicio' => $reserva->fecha_inicio,
+                    'fin' => Carbon::parse($reserva->fecha_fin)->addDays(2)->toDateString()
+                ];
+            });
+
         return Inertia::render('ReservarTerno', [
-            'prenda' => $prenda
+            'prenda' => $prenda,
+            'fechasOcupadas' => $fechasOcupadas
         ]);
     }
 
@@ -39,6 +55,27 @@ class ReservaController extends Controller
             'fecha_fin'     => 'required|date|after_or_equal:fecha_inicio'
         ]);
 
+        // VALIDACIÓN del solape considerando 2 días extra después del fin de cada reserva abierta
+        $existeReserva = Reserva::whereHas('detalleReservas', function ($q) use ($data) {
+                $q->where('prenda_id', $data['prenda_id']);
+            })
+            ->where('estado', '!=', 'cancelada')
+            ->get()
+            ->contains(function ($reserva) use ($data) {
+                $inicioOcupado = Carbon::parse($reserva->fecha_inicio);
+                $finOcupado = Carbon::parse($reserva->fecha_fin)->addDays(2); // sumamos los 2 días por mantenimiento
+
+                $nuevoInicio = Carbon::parse($data['fecha_inicio']);
+                $nuevoFin = Carbon::parse($data['fecha_fin']);
+
+                // Retorna TRUE si solapa, es decir, si el rango solicitado toca el rango ocupado (con días extra)
+                return $nuevoInicio <= $finOcupado && $nuevoFin >= $inicioOcupado;
+            });
+
+        if ($existeReserva) {
+            return back()->withErrors(['Las fechas seleccionadas (incluyendo días de mantenimiento) ya están ocupadas para esta prenda. Por favor elige otro rango.']);
+        }
+
         // Generar código único automático
         $codigo = 'RES-' . str_pad((Reserva::count() + 1), 5, '0', STR_PAD_LEFT);
 
@@ -48,16 +85,16 @@ class ReservaController extends Controller
             'fecha_inicio' => $data['fecha_inicio'],
             'fecha_fin'    => $data['fecha_fin'],
             'estado'       => 'pendiente',
-            'total'        => 0, // Opcional: puedes calcularlo después
+            'total'        => 0, 
             'codigo'       => $codigo
         ]);
 
-        // Agregar el detalle a detalle_reservas
+        // Detalle de reservas
         DetalleReserva::create([
             'reserva_id'      => $reserva->id,
             'prenda_id'       => $data['prenda_id'],
             'talla'           => $data['talla'],
-            'precio_alquiler' => Prenda::find($data['prenda_id'])->precio_alquiler, // <- agrega esta línea
+            'precio_alquiler' => Prenda::find($data['prenda_id'])->precio_alquiler, 
         ]);
         
         return redirect()->route('dashboard')->with('success', 'Reserva creada correctamente');
@@ -82,11 +119,12 @@ class ReservaController extends Controller
             ->orderByDesc('created_at')
             ->get();
     
-        return Inertia::render('Admin/Reservas', [  // <-- AQUÍ
+        return Inertia::render('Admin/Reservas', [
             'reservas' => $reservas,
             'csrf_token' => csrf_token()
         ]);
     }
+
     // ADMIN: Aprobar
     public function aprobar(Reserva $reserva) {
         $reserva->update(['estado'=>'aprobada']);

@@ -3,7 +3,8 @@ import { Head, useForm } from '@inertiajs/vue3'
 import { ref, onMounted } from 'vue'
 
 const props = defineProps({
-    prenda: Object
+    prenda: Object,
+    fechasOcupadas: Array
 })
 
 const form = useForm({
@@ -17,9 +18,16 @@ const today = new Date()
 today.setHours(0,0,0,0)
 
 const calendarMonths = ref([])
-
 const rangeSelecting = ref('inicio')
 
+// ------- Colores para indicadores -------
+const COLORS = {
+    disponible: '#fff',
+    reservado: '#e85d55',
+    mantenimiento: '#fbbf24' // Ambar (amarillo)
+}
+
+// Inicializar doble mes
 const initCalendars = () => {
     const now = new Date()
     const currentMonth = now.getMonth()
@@ -35,17 +43,43 @@ const initCalendars = () => {
 
 const getMonthInfo = (year, month) => {
     const date = new Date(year, month)
-    const firstWeekday = (date.getDay() + 6) % 7 // Lunes = 0
+    const firstWeekday = (date.getDay() + 6) % 7
     const daysInMonth = new Date(year, month + 1, 0).getDate()
     return { firstWeekday, daysInMonth }
 }
 
-const isToday = (y, m, d) => {
-    const dt = new Date(y, m, d)
-    dt.setHours(0,0,0,0)
-    return dt.getTime() === today.getTime()
+// ================ Indicadores visuales ================
+
+// Saber si el día está dentro de una reserva
+const isReservado = (y, m, d) => {
+    const dStr = toStr(y, m, d)
+    return props.fechasOcupadas.some(rango =>
+        dStr >= rango.inicio && dStr <= rango.fin
+    )
 }
 
+// Saber si está en mantenimiento (2 días después de cada fin de reserva)
+const isMantenimiento = (y, m, d) => {
+    const dStr = toStr(y, m, d)
+    return props.fechasOcupadas.some(rango => {
+        const finDate = new Date(rango.fin)
+        for (let i = 1; i <= 2; i++) {
+            const mantDate = new Date(finDate)
+            mantDate.setDate(finDate.getDate() + i)
+            if (dStr === toStr(mantDate.getFullYear(), mantDate.getMonth(), mantDate.getDate())) {
+                return true
+            }
+        }
+        return false
+    })
+}
+
+// Bloquea para click
+const isDisabledByReserva = (y, m, d) => {
+    return isReservado(y, m, d) || isMantenimiento(y, m, d)
+}
+
+// Utilidad
 const isPast = (y, m, d) => {
     const dt = new Date(y, m, d)
     dt.setHours(0,0,0,0)
@@ -62,6 +96,13 @@ const isInRange = (y, m, d) => {
 }
 const isSelected = (y, m, d) => isStart(y, m, d) || isEnd(y, m, d) || isInRange(y, m, d)
 
+// Día recibe fondo y color diferente por tipo
+const dayStyle = (y, m, d) => {
+    if (isReservado(y, m, d)) return { background: COLORS.reservado, color: "#fff", border: '2px solid #e85d55' }
+    if (isMantenimiento(y, m, d)) return { background: COLORS.mantenimiento, color: "#fff", border: '2px solid #fbbf24' }
+    return { background: COLORS.disponible }
+}
+
 const handleDayClick = (y, m, d, disabled) => {
     if (disabled) return
     const val = toStr(y, m, d)
@@ -72,7 +113,7 @@ const handleDayClick = (y, m, d, disabled) => {
     } else if (rangeSelecting.value === 'fin') {
         if (val > form.fecha_inicio) {
             form.fecha_fin = val
-        } else { // Si hacen click en fecha anterior a inicio, resetea e inicia de nuevo
+        } else {
             form.fecha_inicio = val
             form.fecha_fin = ''
         }
@@ -102,6 +143,14 @@ onMounted(() => {
       <div class="mb-5 flex items-center justify-center">
         <span class="inline-block bg-rose-100 text-rose-600 px-8 py-1 rounded-full font-bold text-lg border border-rose-200 shadow">Talla: {{ prenda.talla }}</span>
       </div>
+
+      <!-- Indicadores visuales (leyenda calendario) -->
+      <div class="mb-6 flex items-center gap-7 justify-center">
+        <span class="indicador ejemplo-disponible"><span class="color-circle disponible"></span> Día disponible</span>
+        <span class="indicador ejemplo-reservado"><span class="color-circle reservado"></span> Día reservado</span>
+        <span class="indicador ejemplo-mantenimiento"><span class="color-circle mantenimiento"></span> Día de mantenimiento</span>
+      </div>
+
       <!-- Calendario Doble Mes -->
       <div id="calendar-container" style="display: flex; gap: 40px; justify-content: center; width: 100%; max-width: 700px; margin-bottom: 20px;">
         <div v-for="({ year, month }, idx) in calendarMonths" :key="idx" class="calendar-month">
@@ -119,16 +168,16 @@ onMounted(() => {
               <div
                 class="day"
                 :class="{
-                  disabled: isPast(year, month, d),
-                  today: isToday(year, month, d),
+                  disabled: isPast(year, month, d) || isDisabledByReserva(year, month, d),
                   selected: isSelected(year, month, d),
                   range: isInRange(year, month, d),
                   start: isStart(year, month, d),
-                  end: isEnd(year, month, d),
+                  end: isEnd(year, month, d)
                 }"
-                @click="handleDayClick(year, month, d, isPast(year, month, d))"
+                @click="handleDayClick(year, month, d, isPast(year, month, d) || isDisabledByReserva(year, month, d))"
                 :data-date="toStr(year, month, d)"
-                :style="isInRange(year, month, d) ? 'background:rgba(236,72,153,.15);color:#e85d55' : ''"
+                :style="dayStyle(year, month, d)"
+                :title="isMantenimiento(year, month, d) ? 'Día de mantenimiento, no disponible para reservas.' : (isReservado(year, month, d) ? 'Día reservado por otro cliente.' : (isPast(year, month, d) ? 'No disponible: fecha pasada.' : 'Día disponible para reserva.'))"
               >{{ d }}</div>
             </template>
           </div>
@@ -165,6 +214,24 @@ onMounted(() => {
 </template>
 
 <style>
+.indicador {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    gap: 7px;
+    font-weight: 500;
+}
+.color-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #c3c3c3;
+    display: inline-block;
+}
+.color-circle.disponible { background: #fff; border-color: #bababa; }
+.color-circle.reservado { background: #e85d55; border-color: #e85d55; }
+.color-circle.mantenimiento { background: #fbbf24; border-color: #fbbf24; }
+
 #calendar-container {
     display: flex;
     gap: 40px;
@@ -217,9 +284,6 @@ onMounted(() => {
     background: #fff !important;
     cursor: not-allowed;
     border: none;
-}
-.day.today {
-    border: 2px solid #E85D55;
 }
 .day.selected, .day.start, .day.end {
     background-color: #e85d55 !important;

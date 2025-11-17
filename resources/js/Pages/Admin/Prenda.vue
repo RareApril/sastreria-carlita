@@ -163,6 +163,12 @@ const submit = () => {
           <h3 class="text-xl font-bold text-gray-800 mb-4">
             {{ editingId ? 'Editar Prenda' : 'Nueva Prenda' }}
           </h3>
+          <!-- Bloque para mostrar errores generales y de validación -->
+<div v-if="Object.keys(form.errors).length" class="bg-red-100 text-red-700 border border-red-300 rounded px-4 py-3 mb-4">
+  <ul>
+    <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+  </ul>
+</div>
           <form @submit.prevent="submit" class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-1">
