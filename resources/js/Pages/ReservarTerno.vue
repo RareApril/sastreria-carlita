@@ -146,8 +146,8 @@ onMounted(() => {
 
       <!-- Indicadores visuales (leyenda calendario) -->
       <div class="mb-6 flex items-center gap-7 justify-center">
-        <span class="indicador ejemplo-disponible"><span class="color-circle disponible"></span> Día disponible</span>
-        <span class="indicador ejemplo-reservado"><span class="color-circle reservado"></span> Día reservado</span>
+        <span class="indicador ejemplo-disponible"><span class="color-circle disponible"></span> Día no disponible</span>
+        <span class="indicador ejemplo-reservado"><span class="color-circle reservado"></span> Día disponible</span>
         <span class="indicador ejemplo-mantenimiento"><span class="color-circle mantenimiento"></span> Día de mantenimiento</span>
       </div>
 

@@ -233,7 +233,6 @@ const openWhatsApp = (number) => {
                   <li>• Confección a medida</li>
                   <li>• Alquiler de ternos</li>
                   <li>• Incluye accesorios</li>
-                  <li>• Zapatos +S/15</li>
                 </ul>
               </div>
             </div>
@@ -275,9 +274,6 @@ const openWhatsApp = (number) => {
             <p class="text-sm text-gray-400">
               © 2025 Sastrería & Confecciones Carlita. Todos los derechos reservados.
             </p>
-          </div>
-          <div class="text-xs text-gray-500">
-            Laravel {{ laravelVersion }} | PHP {{ phpVersion }}
           </div>
         </div>
       </div>

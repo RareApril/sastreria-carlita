@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Reserva;
@@ -33,7 +32,6 @@ class ReservaController extends Controller
             ->where('estado', '!=', 'cancelada')
             ->get(['fecha_inicio', 'fecha_fin'])
             ->map(function($reserva) {
-                // sumamos 2 días extra en frontend también si se usa este array 
                 return [
                     'inicio' => $reserva->fecha_inicio,
                     'fin' => Carbon::parse($reserva->fecha_fin)->addDays(2)->toDateString()
@@ -46,7 +44,7 @@ class ReservaController extends Controller
         ]);
     }
 
-    // Crear una nueva reserva
+    // Crear una nueva reserva con código correlativo
     public function store(Request $request) {
         $data = $request->validate([
             'prenda_id'     => 'required|exists:prendas,id',
@@ -55,7 +53,7 @@ class ReservaController extends Controller
             'fecha_fin'     => 'required|date|after_or_equal:fecha_inicio'
         ]);
 
-        // VALIDACIÓN del solape considerando 2 días extra después del fin de cada reserva abierta
+        // Validación del solape con días extra
         $existeReserva = Reserva::whereHas('detalleReservas', function ($q) use ($data) {
                 $q->where('prenda_id', $data['prenda_id']);
             })
@@ -63,12 +61,10 @@ class ReservaController extends Controller
             ->get()
             ->contains(function ($reserva) use ($data) {
                 $inicioOcupado = Carbon::parse($reserva->fecha_inicio);
-                $finOcupado = Carbon::parse($reserva->fecha_fin)->addDays(2); // sumamos los 2 días por mantenimiento
-
+                $finOcupado = Carbon::parse($reserva->fecha_fin)->addDays(2);
                 $nuevoInicio = Carbon::parse($data['fecha_inicio']);
                 $nuevoFin = Carbon::parse($data['fecha_fin']);
 
-                // Retorna TRUE si solapa, es decir, si el rango solicitado toca el rango ocupado (con días extra)
                 return $nuevoInicio <= $finOcupado && $nuevoFin >= $inicioOcupado;
             });
 
@@ -76,49 +72,47 @@ class ReservaController extends Controller
             return back()->withErrors(['Las fechas seleccionadas (incluyendo días de mantenimiento) ya están ocupadas para esta prenda. Por favor elige otro rango.']);
         }
 
-        // Generar código único automático
-        $codigo = 'RES-' . str_pad((Reserva::count() + 1), 5, '0', STR_PAD_LEFT);
-
-        // Creamos la reserva
+        // 1. Crear la reserva con un código temporal seguro (no nulo ni único)
         $reserva = Reserva::create([
             'user_id'      => auth()->id(),
             'fecha_inicio' => $data['fecha_inicio'],
             'fecha_fin'    => $data['fecha_fin'],
             'estado'       => 'pendiente',
-            'total'        => 0, 
-            'codigo'       => $codigo
+            'total'        => 0,
+            'codigo'       => 'TEMP-' . uniqid() // temporal, nunca nulo ni único
         ]);
+
+        // 2. Actualiza el código correlativo con el ID final
+        $codigoFinal = 'RES-' . str_pad($reserva->id, 5, '0', STR_PAD_LEFT);
+        $reserva->update(['codigo' => $codigoFinal]);
 
         // Detalle de reservas
         DetalleReserva::create([
             'reserva_id'      => $reserva->id,
             'prenda_id'       => $data['prenda_id'],
             'talla'           => $data['talla'],
-            'precio_alquiler' => Prenda::find($data['prenda_id'])->precio_alquiler, 
+            'precio_alquiler' => Prenda::find($data['prenda_id'])->precio_alquiler,
         ]);
-        
+
         return redirect()->route('dashboard')->with('success', 'Reserva creada correctamente');
     }
 
     // Cancelar por usuario (si pendiente)
     public function cancelar(Reserva $reserva) {
-        // Verificar que sea el dueño de la reserva
         if ($reserva->user_id !== auth()->id()) {
             abort(403, 'No puedes cancelar esta reserva');
         }
-        
         if ($reserva->estado === 'pendiente') {
             $reserva->update(['estado' => 'cancelada']);
         }
         return back();
     }
     
-    // ADMIN: Ver todas
+    // ADMIN: Ver todas las reservas
     public function indexAdmin() {
         $reservas = Reserva::with(['detalleReservas.prenda','user'])
             ->orderByDesc('created_at')
             ->get();
-    
         return Inertia::render('Admin/Reservas', [
             'reservas' => $reservas,
             'csrf_token' => csrf_token()

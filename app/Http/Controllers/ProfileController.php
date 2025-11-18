@@ -18,9 +18,12 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        // Agrega el estado actual de MFA y si es admin
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'isAdmin' => $request->user()->isAdmin(),
+            'mfa_enabled' => $request->user()->mfa_enabled,
         ]);
     }
 
@@ -29,15 +32,35 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // Si admin, permite cambiar MFA
+        if ($user->isAdmin() && $request->has('mfa_enabled')) {
+            $user->mfa_enabled = (bool) $request->input('mfa_enabled');
+        }
 
-        return Redirect::route('profile.edit');
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Permite activar/desactivar MFA desde el perfil del admin.
+     */
+    public function toggleMfa(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if ($user->isAdmin()) {
+            $user->mfa_enabled = !$user->mfa_enabled;
+            $user->save();
+            return Redirect::route('profile.edit')->with('status', 'MFA modificado');
+        }
+        return Redirect::route('profile.edit')->withErrors(['No tienes permiso para cambiar MFA.']);
     }
 
     /**
@@ -50,9 +73,7 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
-
         Auth::logout();
-
         $user->delete();
 
         $request->session()->invalidate();

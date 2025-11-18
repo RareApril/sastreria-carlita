@@ -1,10 +1,12 @@
 <?php
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\PrendaController;
+use App\Http\Controllers\AdminOtpController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
@@ -20,7 +22,7 @@ Route::get('/', function () {
     ]);
 });
 
-// --- RUTAS GOOGLE ---
+// RUTAS GOOGLE
 Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'callback']);
 
@@ -38,6 +40,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// MFA/OTP para el login admin - poner fuera del grupo y fuera del prefijo
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/otp-prompt', [AdminOtpController::class, 'prompt'])->name('admin.otp.prompt');
+    Route::post('/admin/otp-verify', [AdminOtpController::class, 'verify'])->name('admin.otp.verify');
+    Route::post('/admin/otp-resend', [AdminOtpController::class, 'resend'])->name('admin.otp.resend');
 });
 
 // Panel admin

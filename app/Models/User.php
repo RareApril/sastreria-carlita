@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -22,6 +20,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',             
+        'mfa_enabled',      
+        'otp_code',         
+        'otp_expires_at',  
     ];
 
     /**
@@ -32,6 +34,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'otp_code',
+        'otp_expires_at',
     ];
 
     /**
@@ -44,8 +48,11 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'mfa_enabled' => 'boolean',
+            'otp_expires_at' => 'datetime',
         ];
     }
+
     public function reservas(): HasMany
     {
         return $this->hasMany(Reserva::class);
@@ -55,6 +62,9 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function hasMfaEnabled()
+    {
+        return $this->isAdmin() && $this->mfa_enabled;
+    }
 }
-
-

@@ -5,13 +5,11 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 
-defineProps({
-    mustVerifyEmail: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
+const props = defineProps({
+    mustVerifyEmail: Boolean,
+    status: String,
+    isAdmin: Boolean,
+    mfa_enabled: Boolean,
 });
 
 const user = usePage().props.auth.user;
@@ -19,6 +17,7 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    mfa_enabled: props.mfa_enabled ?? false,
 });
 </script>
 
@@ -88,6 +87,21 @@ const form = useForm({
                 >
                     A new verification link has been sent to your email address.
                 </div>
+            </div>
+
+            <!-- Activar MFA solo si es admin -->
+            <div v-if="props.isAdmin" class="mt-6">
+                <label class="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        class="form-checkbox h-5 w-5 text-indigo-600"
+                        v-model="form.mfa_enabled"
+                    />
+                    <span class="ml-2 text-sm text-gray-700 font-medium">Activar verificación en dos pasos (MFA)</span>
+                </label>
+                <p class="text-xs text-gray-500 mt-1">
+                    Te enviaremos un código al correo cada vez que inicies sesión como administrador.
+                </p>
             </div>
 
             <div class="flex items-center gap-4">

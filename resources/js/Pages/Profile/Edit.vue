@@ -3,15 +3,14 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 
-defineProps({
-    mustVerifyEmail: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
+// Recibe las props del backend; agrega isAdmin y mfa_enabled
+const props = defineProps({
+    mustVerifyEmail: Boolean,
+    status: String,
+    isAdmin: Boolean,        
+    mfa_enabled: Boolean,    
 });
 </script>
 
@@ -35,6 +34,8 @@ defineProps({
                     <UpdateProfileInformationForm
                         :must-verify-email="mustVerifyEmail"
                         :status="status"
+                        :is-admin="isAdmin"
+                        :mfa-enabled="mfa_enabled"
                         class="max-w-xl"
                     />
                 </div>
